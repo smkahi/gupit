@@ -243,6 +243,15 @@
     });
 
     muatTabelTiket();
+
+    // Tutup sidebar saat klik menu (khusus offcanvas)
+document.querySelectorAll('.offcanvas .nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    const sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('sidebar'));
+    if (sidebar) sidebar.hide();
+  });
+});
+
   </script>
 </body>
 </html>
