@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tiket Resmi - GUPIT PARK</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    .tiket-card {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin-right: 10px;
+    }
+    @media (max-width: 768px) {
+      .flex-md-row {
+        flex-direction: column !important;
+        align-items: center;
+      }
+      .qr-container {
+        margin-bottom: 20px;
+      }
+    }
+    @media print {
+      button {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body style="background-color: #f5f5f5">
+  <div class="container py-5">
+    <div id="kontenTiket" class="text-center">
+      <p>Memeriksa status pembayaran Anda...</p>
+    </div>
+
+    <div class="text-center mt-4">
+      <button onclick="window.print()" class="btn btn-outline-secondary">Cetak Tiket</button>
+    </div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzbw18EQBcR72z_klC9HSDEr9Cn5JoGd8WjengifUD7ZjpOd_hZIvZfNNG54Wm_SkeAOQ/exec'; // GANTI
+
+    function formatTanggalIndonesia(dateString) {
+      const options = { year: 'numeric', month: 'long', day: '2-digit' };
+      return new Date(dateString).toLocaleDateString('id-ID', options);
+    }
+
+    function tampilkanTiket(nama, tanggal, jumlah, antrean) {
+      const konten = document.getElementById("kontenTiket");
+      konten.innerHTML = `
+        <div class="tiket-card text-center">
+          <div class="d-flex justify-content-center align-items-center mb-4">
+            <img src="assets/images/logo.png" alt="Logo" class="logo"/>
+            <h3 class="mb-0 text-success fw-bold">GUPIT PARK</h3>
+          </div>
+          <h4 class="mb-4 text-dark">Tiket Resmi Anda</h4>
+          <div class="d-flex flex-md-row flex-column justify-content-around align-items-center">
+            <div class="qr-container" id="qrcode"></div>
+            <div class="text-start mt-4 mt-md-0 ms-md-4">
+              <p><strong>Nama:</strong> ${nama}</p>
+              <p><strong>Tanggal Kunjungan:</strong> ${formatTanggalIndonesia(tanggal)}</p>
+              <p><strong>Jumlah Tiket:</strong> ${jumlah}</p>
+              <p><strong>Nomor Antrean:</strong> ${antrean}</p>
+            </div>
+          </div>
+          <p class="mt-4 text-muted">Tunjukkan QR Code ini saat check-in di lokasi.</p>
+        </div>
+      `;
+      new QRCode(document.getElementById("qrcode"), `${antrean}`);
+    }
+
+    function tampilkanMenungguKonfirmasi(noAdmin) {
+      document.getElementById("kontenTiket").innerHTML = `
+        <h3>Status Pembayaran: <span class="text-warning">Belum Dikonfirmasi</span></h3>
+        <p>Kami sedang menunggu konfirmasi dari admin. Halaman ini akan diperiksa ulang setiap 30 detik.</p>
+        <div class="mt-3">
+          <a href="https://wa.me/${noAdmin}" target="_blank" class="btn btn-outline-success">Hubungi Admin via WhatsApp</a>
+        </div>
+      `;
+    }
+
+    function tampilkanError(noAdmin) {
+      document.getElementById("kontenTiket").innerHTML = `
+        <h3 class='text-danger'>Tiket tidak ditemukan atau belum tersedia.</h3>
+        <p>Silakan kembali ke halaman sebelumnya atau hubungi admin.</p>
+        <a href="https://wa.me/${noAdmin}" target="_blank" class="btn btn-outline-success mt-2">Hubungi Admin</a>
+      `;
+    }
+
+    // Cek status per 30 detik
+    function cekStatusTiket(antrean, dataLokal, noAdmin) {
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(rows => {
+          const match = rows.find(r => parseInt(r[5]) === antrean);
+          if (!match) {
+            tampilkanError(noAdmin);
+          } else if ((match[8] || "").toLowerCase() !== "terkonfirmasi") {
+            tampilkanMenungguKonfirmasi(noAdmin);
+            setTimeout(() => cekStatusTiket(antrean, dataLokal, noAdmin), 30000);
+          } else {
+            tampilkanTiket(match[1], match[3], match[4], match[5]);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          tampilkanError(noAdmin);
+        });
+    }
+
+    const data = JSON.parse(localStorage.getItem("tiket"));
+
+    if (!data || !data.antrean) {
+      document.getElementById("kontenTiket").innerHTML = `
+        <h3>Data tidak ditemukan.</h3>
+        <p>Silakan pesan tiket terlebih dahulu.</p>
+      `;
+    } else {
+      // Ambil noAdmin terbaru dari Spreadsheet
+      fetch(`${scriptURL}?pengaturan=true`)
+        .then(res => res.json())
+        .then(pengaturan => {
+          const noAdmin = pengaturan.waAdmin || "6281234567890";
+          cekStatusTiket(data.antrean, data, noAdmin);
+        })
+        .catch(() => {
+          // fallback jika gagal ambil pengaturan
+          cekStatusTiket(data.antrean, data, "6281234567890");
+        });
+    }
+  </script>
+</body>
+</html>

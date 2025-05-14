@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - GUPIT PARK</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .sidebar {
+      height: 100vh;
+      position: fixed;
+    }
+    .main-content {
+      margin-left: 16.6666667%; /* col-md-2 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <nav class="col-md-2 bg-light sidebar p-3">
+        <h5 class="text-center mb-4">Menu Admin</h5>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="tampilkan('kontenPengaturan')">Pengaturan Konten</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="tampilkan('kontenTiket')">Data Tiket</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="col-md-10 ms-sm-auto px-md-4 pt-4">
+        <!-- Konten Pengaturan -->
+        <div id="kontenPengaturan">
+          <h2 class="mb-4 text-center">Panel Admin GUPIT PARK</h2>
+          <div class="p-4 bg-light rounded mb-4">
+            <h5>Pengaturan Konten Halaman Depan</h5>
+            <form id="formPengaturan">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label>Harga Tiket (Rp)</label>
+                  <input type="number" class="form-control" id="hargaTiket">
+                </div>
+                <div class="col-md-4">
+                  <label>No. WhatsApp Admin</label>
+                  <input type="text" class="form-control" id="waAdmin">
+                </div>
+                <div class="col-md-4">
+                  <label>URL Gambar 1</label>
+                  <input type="text" class="form-control" id="gambar1">
+                </div>
+                <div class="col-md-4">
+                  <label>URL Gambar 2</label>
+                  <input type="text" class="form-control" id="gambar2">
+                </div>
+                <div class="col-md-4">
+                  <label>URL Gambar 3</label>
+                  <input type="text" class="form-control" id="gambar3">
+                </div>
+                <div class="col-md-12">
+                  <label>Paragraf Utama</label>
+                  <textarea class="form-control" id="paragrafUtama"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label>Paragraf Gambar 1</label>
+                  <textarea class="form-control" id="paragrafGambar1"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label>Paragraf Gambar 2</label>
+                  <textarea class="form-control" id="paragrafGambar2"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label>Paragraf Gambar 3</label>
+                  <textarea class="form-control" id="paragrafGambar3"></textarea>
+                </div>
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary w-100">Simpan Pengaturan</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Konten Tiket -->
+        <div id="kontenTiket" class="d-none">
+          <div class="p-4 bg-white shadow rounded">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">Data Tiket Masuk</h5>
+              <button class="btn btn-outline-secondary btn-sm" onclick="muatTabelTiket()">⟳ Refresh Data</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-bordered" id="tabelTiket">
+                <thead class="table-success">
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Nama</th>
+                    <th>Kontak</th>
+                    <th>Tanggal</th>
+                    <th>Jumlah</th>
+                    <th>Antrean</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody><tr><td colspan="9" class="text-center">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzbw18EQBcR72z_klC9HSDEr9Cn5JoGd8WjengifUD7ZjpOd_hZIvZfNNG54Wm_SkeAOQ/exec';
+
+    function tampilkan(id) {
+      document.getElementById("kontenPengaturan").classList.add("d-none");
+      document.getElementById("kontenTiket").classList.add("d-none");
+      document.getElementById(id).classList.remove("d-none");
+
+      document.querySelectorAll(".nav-link").forEach(el => el.classList.remove("active"));
+      if (id === 'kontenPengaturan') {
+        document.querySelectorAll(".nav-link")[0].classList.add("active");
+      } else {
+        document.querySelectorAll(".nav-link")[1].classList.add("active");
+      }
+    }
+
+    function formatTanggal(iso) {
+      return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    function formatTanggalWaktu(iso) {
+      const date = new Date(iso);
+      return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) +
+        ' pukul ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function muatTabelTiket() {
+      const tbody = document.querySelector("#tabelTiket tbody");
+      tbody.innerHTML = "<tr><td colspan='9' class='text-center'>Memuat data...</td></tr>";
+
+      fetch(scriptURL)
+        .then(res => res.json())
+        .then(data => {
+          tbody.innerHTML = "";
+          data.slice(1).forEach((row, i) => {
+            const status = row[8] || "Belum Bayar";
+            const badge = status === "Terkonfirmasi" ? "bg-success" : "bg-secondary";
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${formatTanggalWaktu(row[0])}</td>
+              <td>${row[1]}</td>
+              <td>${row[2]}</td>
+              <td>${formatTanggal(row[3])}</td>
+              <td>${row[4]}</td>
+              <td>${row[5]}</td>
+              <td>Rp${parseInt(row[7] || 0).toLocaleString()}</td>
+              <td><span class="badge ${badge}">${status}</span></td>
+              <td>${status === "Terkonfirmasi" ? '<span class="text-success fw-bold">✔</span>' : `<button class='btn btn-sm btn-outline-success' onclick='konfirmasi(${i + 2}, this)'>Konfirmasi</button>`}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    function konfirmasi(row, btn) {
+      const td = btn.closest("tr").querySelector("td:nth-child(8)");
+      btn.disabled = true;
+      btn.innerHTML = `<span class='spinner-border spinner-border-sm'></span>`;
+
+      fetch(`${scriptURL}?konfirmasi=true&row=${row}`)
+        .then(() => {
+          td.innerHTML = `<span class='badge bg-success'>Terkonfirmasi</span>`;
+          btn.outerHTML = `<span class='text-success fw-bold'>✔</span>`;
+        })
+        .catch(() => {
+          btn.disabled = false;
+          btn.innerText = "Konfirmasi";
+          alert("Gagal menyimpan konfirmasi.");
+        });
+    }
+
+    document.getElementById("formPengaturan").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const params = new URLSearchParams({
+        updatePengaturan: true,
+        hargaTiket: document.getElementById("hargaTiket").value,
+        waAdmin: document.getElementById("waAdmin").value,
+        gambar1: document.getElementById("gambar1").value,
+        gambar2: document.getElementById("gambar2").value,
+        gambar3: document.getElementById("gambar3").value,
+        paragrafUtama: document.getElementById("paragrafUtama").value,
+        paragrafGambar1: document.getElementById("paragrafGambar1").value,
+        paragrafGambar2: document.getElementById("paragrafGambar2").value,
+        paragrafGambar3: document.getElementById("paragrafGambar3").value
+      });
+      fetch(`${scriptURL}?${params.toString()}`)
+        .then(() => alert("Pengaturan berhasil disimpan!"))
+        .catch(() => alert("Gagal menyimpan pengaturan."));
+    });
+
+    fetch(`${scriptURL}?pengaturan=true`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("hargaTiket").value = data.hargaTiket || "";
+        document.getElementById("waAdmin").value = data.waAdmin || "";
+        document.getElementById("gambar1").value = data.gambar1 || "";
+        document.getElementById("gambar2").value = data.gambar2 || "";
+        document.getElementById("gambar3").value = data.gambar3 || "";
+        document.getElementById("paragrafUtama").value = data.paragrafUtama || "";
+        document.getElementById("paragrafGambar1").value = data.paragrafGambar1 || "";
+        document.getElementById("paragrafGambar2").value = data.paragrafGambar2 || "";
+        document.getElementById("paragrafGambar3").value = data.paragrafGambar3 || "";
+      });
+
+    muatTabelTiket();
+  </script>
+</body>
+</html>

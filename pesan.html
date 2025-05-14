@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pesan Tiket - GUPIT PARK</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5 mb-5">
+    <h2 class="text-center mb-4">Form Pemesanan Tiket</h2>
+    <form id="ticketForm" class="shadow p-4 bg-white rounded">
+      <div class="mb-3">
+        <label for="nama" class="form-label">Nama Lengkap</label>
+        <input type="text" class="form-control" id="nama" required>
+      </div>
+      <div class="mb-3">
+        <label for="kontak" class="form-label">Nomor HP / WhatsApp</label>
+        <input type="text" class="form-control" id="kontak" required>
+      </div>
+      <div class="mb-3">
+        <label for="tanggal" class="form-label">Tanggal Kunjungan</label>
+        <input type="date" class="form-control" id="tanggal" required>
+      </div>
+      <div class="mb-3">
+        <label for="jumlah" class="form-label">Jumlah Tiket</label>
+        <input type="number" class="form-control" id="jumlah" required min="1" value="1">
+      </div>
+      <button type="submit" class="btn btn-success w-100" id="submitBtn">Dapatkan Antrean</button>
+      <div id="loadingMsg" class="text-center text-muted mt-3" style="display: none;"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("ticketForm");
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzbw18EQBcR72z_klC9HSDEr9Cn5JoGd8WjengifUD7ZjpOd_hZIvZfNNG54Wm_SkeAOQ/exec'; // GANTI
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById("submitBtn");
+      const loadingMsg = document.getElementById("loadingMsg");
+
+      // Tampilkan loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sedang memproses...";
+      loadingMsg.style.display = "block";
+      loadingMsg.textContent = "⏳ Sedang menyiapkan tiket Anda. Mohon tunggu...";
+
+      const nama = form.nama.value;
+      const kontak = form.kontak.value;
+      const tanggal = form.tanggal.value;
+      const jumlah = parseInt(form.jumlah.value);
+      const antrean = Math.floor(Math.random() * 10000);
+
+      try {
+        // Ambil pengaturan dari spreadsheet
+        const hargaRes = await fetch(`${scriptURL}?pengaturan=true`);
+        const config = await hargaRes.json();
+        const hargaTiket = parseInt(config.hargaTiket);
+        const noAdmin = config.waAdmin;
+        const totalBayar = jumlah * hargaTiket;
+
+        // Simpan ke Spreadsheet
+        const formData = new FormData();
+        formData.append("nama", nama);
+        formData.append("kontak", kontak);
+        formData.append("tanggal", tanggal);
+        formData.append("jumlah", jumlah);
+        formData.append("antrean", antrean);
+        formData.append("total", totalBayar);
+        formData.append("harga", hargaTiket);
+
+        await fetch(scriptURL, { method: "POST", body: formData });
+
+        // Simpan ke localStorage
+        localStorage.setItem("tiket", JSON.stringify({ nama, kontak, tanggal, jumlah, antrean, totalBayar, hargaTiket, noAdmin }));
+
+        // Arahkan ke halaman pembayaran
+        window.location.href = "pembayaran.html";
+
+      } catch (err) {
+        console.error("Gagal kirim:", err);
+        alert("Gagal mengirim data. Silakan coba lagi.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Dapatkan Antrean";
+        loadingMsg.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>

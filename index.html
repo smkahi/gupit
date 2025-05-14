@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Beranda - GUPIT PARK</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <style>
+    .img-seragam {
+      width: 100%;
+      max-width: 400px;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5 text-center">
+    <!-- Logo dan Judul -->
+    <img src="assets/images/logo.png" alt="Logo GUPIT PARK" width="100" class="mb-3 mx-auto d-block">
+    <h1 class="mb-3 text-success fw-bold">Selamat Datang di GUPIT PARK</h1>
+    <p id="deskripsiUtama" class="mb-4 text-muted">Deskripsi default halaman utama.</p>
+    
+    <!-- Galeri 3 Gambar -->
+    <div class="row justify-content-center g-4">
+<h2 class="mb-3">Kenapa GUPIT PARK?</h2>
+      <div class="col-md-4">
+        <img id="gambar1" src="assets/images/default1.jpg" alt="Gambar 1" class="img-seragam">
+        <p id="paragrafGambar1" class="mt-2">Paragraf Gambar 1</p>
+      </div>
+      <div class="col-md-4">
+        <img id="gambar2" src="assets/images/default2.jpg" alt="Gambar 2" class="img-seragam">
+        <p id="paragrafGambar2" class="mt-2">Paragraf Gambar 2</p>
+      </div>
+      <div class="col-md-4">
+        <img id="gambar3" src="assets/images/default3.jpg" alt="Gambar 3" class="img-seragam">
+        <p id="paragrafGambar3" class="mt-2">Paragraf Gambar 3</p>
+      </div>
+    </div>
+<br>
+<a href="pesan.html" class="btn btn-success btn-lg mb-5">Pesan Tiket Sekarang</a>
+  </div>
+
+  <!-- Floating Chat WA -->
+  <div id="chat-floating" class="position-fixed bottom-0 end-0 p-3 z-3">
+    <div id="chatbox" class="chat-popup d-none mb-2">
+      <div class="p-3 border bg-light rounded shadow-sm">
+        <strong>Admin GUPIT PARK</strong> <span class="badge bg-success">Online</span>
+        <div class="mt-2">Halo 👋<br/>Ada yang bisa dibantu?</div>
+        <textarea id="userMsg" class="form-control mt-2" placeholder="Ketik pesan anda..."></textarea>
+        <button class="btn btn-success mt-2 w-100" onclick="kirimPesanWA()">Kirim</button>
+      </div>
+    </div>
+    <button id="toggleChat" class="btn btn-success rounded-circle shadow" style="width: 60px; height: 60px;">
+      <img src="assets/images/whatsapp-icon.png" width="30" />
+    </button>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzbw18EQBcR72z_klC9HSDEr9Cn5JoGd8WjengifUD7ZjpOd_hZIvZfNNG54Wm_SkeAOQ/exec';
+    let nomorAdmin = '6281234567890';
+
+    window.onload = () => {
+      fetch(`${scriptURL}?pengaturan=true`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.waAdmin) nomorAdmin = data.waAdmin;
+
+          if (data.gambar1) document.getElementById("gambar1").src = data.gambar1;
+          if (data.gambar2) document.getElementById("gambar2").src = data.gambar2;
+          if (data.gambar3) document.getElementById("gambar3").src = data.gambar3;
+
+          if (data.paragrafUtama) document.getElementById("deskripsiUtama").textContent = data.paragrafUtama;
+          if (data.paragrafGambar1) document.getElementById("paragrafGambar1").textContent = data.paragrafGambar1;
+          if (data.paragrafGambar2) document.getElementById("paragrafGambar2").textContent = data.paragrafGambar2;
+          if (data.paragrafGambar3) document.getElementById("paragrafGambar3").textContent = data.paragrafGambar3;
+        });
+    }
+
+    document.getElementById("toggleChat").addEventListener("click", () => {
+      const chat = document.getElementById("chatbox");
+      chat.classList.toggle("d-none");
+    });
+
+    function kirimPesanWA() {
+      const pesan = encodeURIComponent(document.getElementById("userMsg").value.trim());
+      if (!pesan) return alert("Silakan ketik pesan Anda.");
+      window.open(`https://wa.me/${nomorAdmin}?text=${pesan}`, '_blank');
+    }
+  </script>
+</body>
+</html>
